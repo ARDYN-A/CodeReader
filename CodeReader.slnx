@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="CodeReader.vcxproj" />
+  <Project Path="CodeReader.vcxproj" Id="14285f60-d517-43f0-9eee-58979d4eae60" />
 </Solution>
