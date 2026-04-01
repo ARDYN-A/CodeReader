@@ -3,5 +3,6 @@
 #include"Lib.h"
 
 int main() {
-	std::cout << "Number of C++ files: " << fileCount(".cpp") << std::endl;
+	const std::array<std::string, 2> filter = { ".cpp", ".h" };
+	std::cout << "Number of C++ files: " << fileCount(filter) << std::endl;
 }
