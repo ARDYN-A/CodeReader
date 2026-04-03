@@ -25,15 +25,33 @@ int main(int argc, char* argv[]) {
 		extensions.insert(ext);
 	}
 
-	std::cout << "Scanning: " << root.string() << std::endl;
+	DirectoryStatistics stats;
 
-	auto files = collectFiles(root, extensions);
+	std::cout << "Scanning: " << root.string() << std::endl << std::endl;
 
-	std::cout << "Found " << files.size() << " files:" << std::endl;
+	auto filePaths = collectFilePathsList(root, extensions);
 
-	if (files.empty()) { return 0; }
+	stats.fileCount = filePaths.size();
 
-	for (auto file : files) {
-		std::cout << file.string() << std::endl;
+	std::cout << "Found " << stats.fileCount << " files\n" << std::endl;
+
+	if (filePaths.empty()) { return 0; }
+
+	for (auto filePath : filePaths) {
+		CountFileLinesResult res;
+		std::string ext = filePath.extension().string();
+		res = countFileLines(filePath);
+		stats.lineCount += res.count;
+		stats.errorCount += res.error ? 1 : 0;
+		stats.lineCountByExtension.insert({ ext, res.count });
+	}
+
+	std::cout << "----------------------------" << std::endl;
+	std::cout << "Total Lines: " << stats.lineCount << std::endl;
+	std::cout << "Total Errors: " << stats.errorCount << std::endl;
+	std::cout << "----------------------------" << std::endl;
+	std::cout << "Total Lines per Extension:" << std::endl;
+	for (const auto& [ext, lineCount] : stats.lineCountByExtension) {
+		std::cout << ext << ": " << lineCount << std::endl;
 	}
 }
