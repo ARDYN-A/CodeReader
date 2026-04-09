@@ -1,5 +1,4 @@
 #include<iostream>
-#include<filesystem>
 #include"Lib.hpp"
 
 int main(int argc, char* argv[]) {
@@ -29,7 +28,7 @@ int main(int argc, char* argv[]) {
 
 	std::cout << "Scanning: " << root.string() << std::endl << std::endl;
 
-	auto filePaths = collectFilePathsList(root, extensions);
+	std::vector<std::filesystem::path> filePaths = collectFilePathsList(root, extensions);
 
 	stats.fileCount = filePaths.size();
 
@@ -37,13 +36,28 @@ int main(int argc, char* argv[]) {
 
 	if (filePaths.empty()) { return 0; }
 
-	for (auto filePath : filePaths) {
-		CountFileLinesResult res;
-		std::string ext = filePath.extension().string();
-		res = countFileLines(filePath);
-		stats.lineCount += res.count;
-		stats.errorCount += res.error ? 1 : 0;
-		stats.lineCountByExtension.insert({ ext, res.count });
+	size_t numThreads = std::max(1u, std::thread::hardware_concurrency());
+	ThreadPool tp(numThreads);
+	std::cout << "Using " << numThreads << " threads" << std::endl << std::endl;
+
+	std::vector<std::future<CountFileLinesResult>> futures;
+	futures.reserve(filePaths.size());
+
+	for (const auto& filePath : filePaths) {
+		futures.emplace_back(tp.enqueue(countFileLines, filePath));
+	}
+
+	for (std::future<CountFileLinesResult>& future : futures) {
+		CountFileLinesResult result = future.get();
+		if (result.error) {
+			++stats.errorCount;
+			std::cerr << "Error reading: " << result.path << std::endl;
+		}
+		else {
+			++stats.fileCount;
+			stats.lineCount += result.count;
+			stats.lineCountByExtension[result.path.extension().string()] += result.count;
+		}
 	}
 
 	std::cout << "----------------------------" << std::endl;
