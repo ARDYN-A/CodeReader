@@ -1,3 +1,3 @@
 # CodeReader
 
-A small project for C++ multithreading practice. This will be a program that counts lines of code in a directory using multithreading.
+A small project for C++ multithreading practice. This program will read lines of code in a directory and its subdirectories with multiple threads.
